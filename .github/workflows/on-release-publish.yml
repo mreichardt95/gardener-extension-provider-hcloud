@@ -36,6 +36,9 @@ jobs:
             example/controller-registration.yaml
   go-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -44,7 +47,7 @@ jobs:
 
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Update VERSION file
       run: |-
           echo "${{ github.ref_name }}" > VERSION
