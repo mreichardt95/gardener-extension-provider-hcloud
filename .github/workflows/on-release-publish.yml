@@ -15,9 +15,9 @@ jobs:
       run: |-
           echo "${{ github.ref_name }}" > VERSION
     - name: Setup Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
-        go-version: ">=1.21.0"
+        go-version: ">=1.25.0"
     - name: Create controller-registration.yaml
       run: |-
         GOPATH=$(go env GOPATH)
@@ -49,18 +49,18 @@ jobs:
       run: |-
           echo "${{ github.ref_name }}" > VERSION
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      uses: docker/setup-buildx-action@v3
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish image
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v6
       with:
         target: ${{ matrix.name }}
         push: true
         tags: |
-          ghcr.io/23technologies/${{ matrix.name }}:latest
-          ghcr.io/23technologies/${{ matrix.name }}:${{ github.ref_name }}
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:latest
+          ghcr.io/${{ github.repository_owner }}/${{ matrix.name }}:${{ github.ref_name }}

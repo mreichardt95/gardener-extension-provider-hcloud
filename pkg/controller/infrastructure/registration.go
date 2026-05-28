@@ -40,8 +40,8 @@ type AddOptions struct {
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
 	// GardenId is the Gardener garden identity
-	GardenId       string
-	ExtensionClass extensionsv1alpha1.ExtensionClass
+	GardenId         string
+	ExtensionClasses []extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -56,7 +56,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        infrastructure.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
-		ExtensionClass:    opts.ExtensionClass,
+		ExtensionClasses:  opts.ExtensionClasses,
 	})
 }
 

@@ -50,7 +50,7 @@ type AddOptions struct {
 	GardenId string
 	// WebhookServerNamespace is the namespace in which the webhook server runs.
 	WebhookServerNamespace string
-	ExtensionClass         extensionsv1alpha1.ExtensionClass
+	ExtensionClasses       []extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -63,19 +63,13 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 	genericActuator, err := genericactuator.NewActuator(
 		mgr,
 		hcloud.Name,
-
 		getSecretConfigs,
 		getAccessSecrets,
-
-		nil,
-		nil,
-
 		configChart,
 		controlPlaneChart,
 		controlPlaneShootChart,
 		nil,
 		storageClassChart,
-		nil,
 		NewValuesProvider(mgr, logger, opts.GardenId),
 		extensionscontroller.ChartRendererFactoryFunc(util.NewChartRendererForShoot),
 		controllerapis.ImageVector(),
@@ -93,7 +87,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        controlplane.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
-		ExtensionClass:    opts.ExtensionClass,
+		ExtensionClasses:  opts.ExtensionClasses,
 	})
 }
 

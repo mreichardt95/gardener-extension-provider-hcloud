@@ -44,8 +44,8 @@ type AddOptions struct {
 	// IgnoreOperationAnnotation specifies whether to ignore the operation annotation or not.
 	IgnoreOperationAnnotation bool
 	// GardenCluster is the garden cluster object.
-	GardenCluster  cluster.Cluster
-	ExtensionClass extensionsv1alpha1.ExtensionClass
+	GardenCluster    cluster.Cluster
+	ExtensionClasses []extensionsv1alpha1.ExtensionClass
 }
 
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
@@ -73,7 +73,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 		ControllerOptions: opts.Controller,
 		Predicates:        worker.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
 		Type:              hcloud.Type,
-		ExtensionClass:    opts.ExtensionClass,
+		ExtensionClasses:  opts.ExtensionClasses,
 	})
 }
 
