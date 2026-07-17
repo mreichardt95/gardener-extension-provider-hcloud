@@ -138,6 +138,11 @@ spec:
             value: 0.0.0.0:9189
           - name: ENABLE_METRICS
             value: "true"
+          # Controller runs on the seed (not a Hetzner cloud server), so the
+          # metadata service at 169.254.169.254 is unreachable. Set the default
+          # volume location explicitly; v2 checks this before any metadata call.
+          - name: HCLOUD_VOLUME_DEFAULT_LOCATION
+            value: {{ .Values.csiRegion }}
           - name: KUBE_NODE_NAME
             valueFrom:
               fieldRef:
