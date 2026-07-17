@@ -51,6 +51,8 @@ spec:
             privileged: true
         - name: hcloud-csi-driver
           image: {{ index .Values.images "csi-driver-node" }}
+          args:
+          - -node
           env:
           - name: CSI_ENDPOINT
             value: unix:///run/csi/socket
