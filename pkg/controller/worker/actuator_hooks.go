@@ -24,6 +24,7 @@ import (
 	hcloud "github.com/hetznercloud/hcloud-go/v2/hcloud"
 
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/controller/worker/ensurer"
+	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis"
 	"github.com/23technologies/gardener-extension-provider-hcloud/pkg/hcloud/apis/transcoder"
 )
 
@@ -32,27 +33,21 @@ import (
 // PARAMETERS
 // _ context.Context Execution context
 func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
-	test, _, _ := w.hclient.ServerType.List(ctx, hcloud.ServerTypeListOpts{})
-	srvTypeIdToName := make(map[int64]string, len(test))
-
-	for _, srvType := range test {
-		srvTypeIdToName[srvType.ID] = srvType.Name
-	}
-
 	for _, pool := range w.worker.Spec.Pools {
 		// currently there is only one zone per region on hetzner.
 		zone := pool.Zones[0]
-		dc, _, _ := w.hclient.Datacenter.Get(ctx, zone)
+		location := apis.GetRegionFromZone(zone)
 
-		machineTypeAvailable := false
-		for _, curServerType := range dc.ServerTypes.Available {
-			if pool.MachineType == srvTypeIdToName[curServerType.ID] {
-				machineTypeAvailable = true
-				break
-			}
+		serverType, _, err := w.hclient.ServerType.GetByName(ctx, pool.MachineType)
+		if err != nil {
+			return fmt.Errorf("failed to get server type %s: %w", pool.MachineType, err)
 		}
-		if !machineTypeAvailable {
-			return fmt.Errorf("Machine Type %s is currently not availbe in %s", pool.MachineType, dc.Name)
+		if serverType == nil {
+			return fmt.Errorf("server type %s not found", pool.MachineType)
+		}
+
+		if err := checkServerTypeAvailableInLocation(serverType, location); err != nil {
+			return err
 		}
 	}
 
@@ -74,6 +69,21 @@ func (w *workerDelegate) PreReconcileHook(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// checkServerTypeAvailableInLocation returns an error if the given server type is not available in the given location.
+//
+// PARAMETERS
+// serverType *hcloud.ServerType Server type to check
+// location   string             Location name (e.g. "nbg1")
+func checkServerTypeAvailableInLocation(serverType *hcloud.ServerType, location string) error {
+	for _, serverTypeLocation := range serverType.Locations {
+		if serverTypeLocation.Location != nil && serverTypeLocation.Location.Name == location && serverTypeLocation.Available {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("machine type %s is currently not available in %s", serverType.Name, location)
 }
 
 // PostReconcileHook is a hook called at the end of the worker reconciliation flow.
